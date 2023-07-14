@@ -4,29 +4,25 @@ import { Page, expect } from "@playwright/test";
 
 export async function setupE2eTest() {
     await startSupabase();
-    reseedDb();
+    // reseedDb();
 }
 
 async function startSupabase() {
-    const port = await detect(64321);
-    if (port !== 64321) {
+    const port = await detect(54323);
+    if (port !== 54323) {
         return;
     }
     console.warn("Supabase not detected - Starting it now");
     execSync("npx supabase start");
 }
 
-function reseedDb(){
-    try{
-
-      execSync(
-        "SET PGPASSWORD=postgres&&psql -U postgres -h 127.0.0.1 -p 54322 -f supabase/clear-db-data.sql",
-        { stdio: "ignore"}
-        );
-    } catch{
-      console.log('reseed bypassed');
-    };
-}
+// Reseed function is broken, I intend to have the tests clean themselves upso this should not be needed
+// function reseedDb(){
+//     execSync(
+//       "SET PGPASSWORD=postgres&&psql -U postgres -h 127.0.0.1 -p 54322 -f supabase/clear-db-data.sql",
+//       { stdio: "ignore"}
+//       );
+// }
 
 export async function signUp(
     page: Page,
@@ -42,8 +38,8 @@ export async function signUp(
     const passwordInput = page.locator('input[name="password"]');
     await passwordInput.fill(password);
     await page.keyboard.press("Enter");
-    const welcomeNotice = page.locator("h2", { hasText: "Welcome to Supaship!" });
-    await expect(welcomeNotice).toHaveCount(1);
+    const welcomeNotice = page.locator(".welcome-header");
+    await expect(welcomeNotice).toHaveText("Welcome to Supaship!!");
     if (skipUserName) {
       return;
     }
@@ -89,4 +85,13 @@ export async function signUp(
     const post = page.locator("h3", { hasText: title });
     await expect(post).toHaveCount(1);
     return post;
+  }
+
+  export async function createComment(page: Page, comment: string) {
+    const commentInput = page.locator(`textarea[name="comment"]`);
+    const commentSubmitButton = page.locator(`button[type="submit"]`);
+    await commentInput.fill(comment);
+    await commentSubmitButton.click();
+    const createdComment = page.locator("p", { hasText: comment });
+    await expect(createdComment).toHaveCount(1);
   }
