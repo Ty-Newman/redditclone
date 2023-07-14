@@ -17,10 +17,15 @@ async function startSupabase() {
 }
 
 function reseedDb(){
-    execSync(
+    try{
+
+      execSync(
         "SET PGPASSWORD=postgres&&psql -U postgres -h 127.0.0.1 -p 54322 -f supabase/clear-db-data.sql",
         { stdio: "ignore"}
-    );
+        );
+    } catch{
+      console.log('reseed bypassed');
+    };
 }
 
 export async function signUp(
